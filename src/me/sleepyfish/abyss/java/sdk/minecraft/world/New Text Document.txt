@@ -1,0 +1,85 @@
+this is minecraft code (1.8.9):
+
+this.mc.mouseHelper.mouseXYChange();
+    public void mouseXYChange() {
+        this.deltaX = Mouse.getDX();
+        this.deltaY = Mouse.getDY();
+    }
+
+float f = this.mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
+float f1 = f * f * f * 8.0F;
+float f2 = (float) this.mc.mouseHelper.deltaX * f1;
+float f3 = (float) this.mc.mouseHelper.deltaY * f1;
+int i = 1;
+
+this.mc.thePlayer.setAngles(f2, f3 * (float) i);
+
+    public void setAngles(float yaw, float pitch) {
+        float f = this.rotationPitch;
+        float f1 = this.rotationYaw;
+        this.rotationYaw = (float) ((double) this.rotationYaw + (double) yaw * 0.15D);
+        this.rotationPitch = (float) ((double) this.rotationPitch - (double) pitch * 0.15D);
+        this.rotationPitch = MathHelper.clamp_float(this.rotationPitch, -90F, 90F);
+        this.prevRotationPitch += this.rotationPitch - f;
+        this.prevRotationYaw += this.rotationYaw - f1;
+    }
+
+and this is my c++ jni code for aura:
+
+void Aura::onTickEvent() {
+    if (this->weaponOnly->isEnabled()) {
+        if (!MinecraftUtils::holdingWeapon())
+            return;
+    }
+
+    const EntityPlayerSP& player = Oxy::inst->minecraft->getPlayer();
+
+    if (this->ignoreBlockAndEating->isEnabled()) {
+        if (player.isEatingOrBlocking())
+            return;
+    }
+
+    EntityPlayer target = this->getValidTarget(player);
+    if (target.isNull())
+        return;
+
+    this->updateRotations(player, target);
+
+    if (Java::sameObject(Oxy::inst->minecraft->getPointedEntity().getInst(), target.getInst())) {
+        this->clickUtils->update(this->cpsMin->getValueF(), this->cpsMax->getValueF(), this->extraRandom->isEnabled(), this->extraRandomRangeMin->getValueF(), this->extraRandomRangeMax->getValueF());
+    }
+}
+
+void Aura::updateRotations(const EntityPlayerSP& player, Entity target) {
+
+    Vector2 targetRots = this->getOxyRotations(player, target);
+    if (targetRots.isNan())
+        return;
+
+    // grim:baritone (anti-afk) flag bypass
+    {
+        Vector2 playerRots = player.getRotation();
+
+        const float yawDiff = MathUtils::abs(MathUtils::wrapAngleTo180_float(targetRots.x - playerRots.x));
+        const float pitchDiff = MathUtils::abs(targetRots.y - playerRots.y);
+
+        if (yawDiff <= 0.001F)
+            targetRots.x = playerRots.x;
+
+        if (pitchDiff <= 0.001F)
+            targetRots.y = playerRots.y;
+    }
+
+    player.setRotation(targetRots);
+
+}
+
+
+i want you to add that minecraft formular for aiming so i dont get flagged by the anti-cheats for GDC(something with great divisor c... idk)
+so the rotations it sets (targetRots)(player.setRotation(targetRots);) are humanized so they are legit how a real player could aim. dont make them random tho.
+just humanize the value that will be moved next
+
+you should not make it smooth or shit im saying that you need to change it so that the rotation change can also be made by a real human calculated with the stuff from original minecraft
+
+the anti-cheat flags: generic rotation analysis heuristic and not constant rotations
+i also mapped getMouseHelper.getDeltaX and Y also i mapped setAngles so now we can use the minecraft original call for that
