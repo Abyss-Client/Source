@@ -1,4 +1,4 @@
-# Source
+# Abyss Client Source
 This is the full source code of Abyss!
 Enjoy using it however you want!
 
