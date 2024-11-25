@@ -10,3 +10,10 @@ The base was made by Smellon also known as "johncbranton"
 - JNI
 - MinHook
 - STB_IMAGE
+
+# Fonts used in this Repository
+- GGSans
+- JetbrainsMono
+- Quicksand Regular
+- Quicksand Bold
+- Quicksand Medium
